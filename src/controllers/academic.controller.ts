@@ -786,10 +786,21 @@ export const publishResults = async (
   // Background process
   const processPublishing = async () => {
     try {
-      const where: any = { semesterId };
+      let effectiveSemesterId: any = semesterId;
+      if (semesterId && year && !semesterId.includes(year)) {
+        effectiveSemesterId = `${year.toUpperCase()}-${semesterId.toUpperCase()}`;
+      } else if (semesterId && !year) {
+        // If only semesterId is provided, allow matching regardless of year
+        effectiveSemesterId = { endsWith: `-${semesterId.toUpperCase()}` };
+      } else if (!semesterId && year) {
+        // If only year is provided
+        effectiveSemesterId = { startsWith: `${year.toUpperCase()}-` };
+      }
+
+      const where: any = { semesterId: effectiveSemesterId };
       if (year) {
         where.subject = {
-          code: { contains: `-${year}-` },
+          code: { contains: `-${year.toUpperCase()}-` },
         };
       }
 
@@ -797,6 +808,7 @@ export const publishResults = async (
       console.log(
         `[Publish] Fetching grades for ${semesterId}, Year: ${year || "All"}...`,
       );
+
       const grades = await prisma.grade.findMany({
         where,
         include: { subject: true },
@@ -971,10 +983,17 @@ export const publishAttendance = async (
 
   const processPublishing = async () => {
     try {
+      let effectiveSemesterId: any = semesterId;
+      if (semesterId && year && !semesterId.includes(year)) {
+        effectiveSemesterId = `${year.toUpperCase()}-${semesterId.toUpperCase()}`;
+      } else if (semesterId && !year) {
+        effectiveSemesterId = { endsWith: `-${semesterId.toUpperCase()}` };
+      }
+
       // 1. Fetch data
       const attendance = await prisma.attendance.findMany({
         where: {
-          semesterId,
+          semesterId: effectiveSemesterId,
           batch: year || undefined,
           subject: branch ? { department: branch } : undefined,
         },
