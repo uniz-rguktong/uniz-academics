@@ -990,13 +990,22 @@ export const publishAttendance = async (
         effectiveSemesterId = { endsWith: `-${semesterId.toUpperCase()}` };
       }
 
+      const where: any = {
+        semesterId: effectiveSemesterId,
+      };
+
+      if (year || branch) {
+        where.subject = {
+          AND: [
+            year ? { code: { contains: `-${year.toUpperCase()}-` } } : {},
+            branch ? { department: branch } : {},
+          ],
+        };
+      }
+
       // 1. Fetch data
       const attendance = await prisma.attendance.findMany({
-        where: {
-          semesterId: effectiveSemesterId,
-          batch: year || undefined,
-          subject: branch ? { department: branch } : undefined,
-        },
+        where,
         include: { subject: true },
       });
 
