@@ -801,6 +801,11 @@ export const publishResults = async (
         effectiveSemesterId = { startsWith: `${year.toUpperCase()}-` };
       }
 
+      const displaySemester =
+        year && semesterId && !semesterId.includes(year)
+          ? `${year.toUpperCase()} ${semesterId.toUpperCase()}`
+          : semesterId.toUpperCase();
+
       const where: any = { semesterId: effectiveSemesterId };
       if (year) {
         where.subject = {
@@ -911,7 +916,7 @@ export const publishResults = async (
                     name,
                     branch,
                     campus,
-                    semesterId,
+                    semesterId: displaySemester,
                     grades: studentGrades[studentId],
                   },
                 },
@@ -944,7 +949,7 @@ export const publishResults = async (
             total,
             sent: sentCount,
             percent: Math.round((currentProcessed / total) * 100),
-            semesterId,
+            semesterId: displaySemester,
           }),
         );
       }
@@ -996,6 +1001,11 @@ export const publishAttendance = async (
       } else if (semesterId && !year) {
         effectiveSemesterId = { endsWith: `-${semesterId.toUpperCase()}` };
       }
+
+      const displaySemester =
+        year && semesterId && !semesterId.includes(year)
+          ? `${year.toUpperCase()} ${semesterId.toUpperCase()}`
+          : semesterId.toUpperCase();
 
       const where: any = {
         semesterId: effectiveSemesterId,
@@ -1064,7 +1074,7 @@ export const publishAttendance = async (
           total,
           sent: 0,
           percent: 0,
-          semesterId,
+          semesterId: displaySemester,
         }),
       );
 
@@ -1092,7 +1102,7 @@ export const publishAttendance = async (
                     username: studentId,
                     name: profile?.name || "Student",
                     branch: profile?.branch || "General",
-                    semesterId,
+                    semesterId: displaySemester,
                     records: studentAttendance[studentId],
                   },
                 },
@@ -1119,7 +1129,7 @@ export const publishAttendance = async (
             total,
             sent: sentCount,
             percent: Math.round((currentProcessed / total) * 100),
-            semesterId,
+            semesterId: displaySemester,
           }),
         );
       }
