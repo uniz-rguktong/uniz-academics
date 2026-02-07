@@ -886,7 +886,7 @@ export const publishResults = async (
           total,
           sent: 0,
           percent: 0,
-          semesterId,
+          semesterId: displaySemester,
         }),
       );
 
