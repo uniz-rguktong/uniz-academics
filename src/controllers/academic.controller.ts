@@ -56,12 +56,10 @@ export const getUploadProgress = async (
     return res.json({ success: true, progress: { status: "idle" } });
   } catch (e: any) {
     console.error("Progress fetch error:", e);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Unable to retrieve progress at this time.",
-      });
+    return res.status(500).json({
+      success: false,
+      message: "Unable to retrieve progress at this time.",
+    });
   }
 };
 
@@ -88,12 +86,10 @@ export const getPublishProgress = async (
     });
   } catch (e: any) {
     console.error("Publish progress fetch error:", e);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Unable to retrieve publish progress.",
-      });
+    return res.status(500).json({
+      success: false,
+      message: "Unable to retrieve publish progress.",
+    });
   }
 };
 
@@ -222,12 +218,10 @@ export const getBatchGrades = async (
       students: studentsList,
     });
   } catch (e: any) {
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Failed to retrieve batch grades at this time.",
-      });
+    return res.status(500).json({
+      success: false,
+      message: "Failed to retrieve batch grades at this time.",
+    });
   }
 };
 
@@ -398,16 +392,22 @@ export const getGrades = async (req: AuthenticatedRequest, res: Response) => {
     });
   } catch (e: any) {
     console.error("getGrades error:", e);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Failed to retrieve academic records.",
-      });
+    return res.status(500).json({
+      success: false,
+      message: "Failed to retrieve academic records.",
+    });
   }
 };
 
 export const addGrades = async (req: AuthenticatedRequest, res: Response) => {
+  const user = req.user;
+  if (
+    !user ||
+    !["webmaster", "dean", "director"].includes(user.role as string)
+  ) {
+    return res.status(403).json({ success: false, message: "Unauthorized" });
+  }
+
   const { studentId: rawStudentId, semesterId, grades } = req.body;
   const studentId = String(rawStudentId || "").toUpperCase();
 
@@ -448,19 +448,15 @@ export const addGrades = async (req: AuthenticatedRequest, res: Response) => {
     return res.json({ success: true, count: results.length });
   } catch (e: any) {
     if (e.code === "P2003") {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "The provided Student or Subject details are invalid.",
-        });
-    }
-    return res
-      .status(500)
-      .json({
+      return res.status(400).json({
         success: false,
-        message: "An unexpected error occurred while adding grades.",
+        message: "The provided Student or Subject details are invalid.",
       });
+    }
+    return res.status(500).json({
+      success: false,
+      message: "An unexpected error occurred while adding grades.",
+    });
   }
 };
 
@@ -608,13 +604,10 @@ export const bulkUpdateGrades = async (
   } catch (e: any) {
     if (e.code === "P2003") {
       // Foreign Key Violation
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message:
-            "Cannot update grades: One or more IDs provided are invalid.",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Cannot update grades: One or more IDs provided are invalid.",
+      });
     }
     // Handle custom thrown errors (like "Subject not found")
     if (e instanceof Error) {
@@ -711,6 +704,13 @@ export const addAttendance = async (
   req: AuthenticatedRequest,
   res: Response,
 ) => {
+  const user = req.user;
+  if (
+    !user ||
+    !["webmaster", "dean", "director"].includes(user.role as string)
+  ) {
+    return res.status(403).json({ success: false, message: "Unauthorized" });
+  }
   const { subjectId, records } = req.body;
 
   if (!Array.isArray(records)) {
@@ -723,20 +723,16 @@ export const addAttendance = async (
     // Validation
     for (const r of records) {
       if (r.attended < 0 || r.total < 0) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message: "Attendance values cannot be negative",
-          });
+        return res.status(400).json({
+          success: false,
+          message: "Attendance values cannot be negative",
+        });
       }
       if (r.attended > r.total) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message: "Attended classes cannot exceed total classes",
-          });
+        return res.status(400).json({
+          success: false,
+          message: "Attended classes cannot exceed total classes",
+        });
       }
     }
 
@@ -1118,22 +1114,18 @@ export const addSubject = async (req: AuthenticatedRequest, res: Response) => {
   // Only Webmaster or Dean/Director can add/update subjects
   const allowed = ["webmaster", "dean", "director"];
   if (!user || !allowed.includes(user.role as string)) {
-    return res
-      .status(403)
-      .json({
-        success: false,
-        message: "Only administrators can manage subjects",
-      });
+    return res.status(403).json({
+      success: false,
+      message: "Only administrators can manage subjects",
+    });
   }
 
   if (!code || !name || !credits || !department || !semester) {
-    return res
-      .status(400)
-      .json({
-        success: false,
-        message:
-          "All fields (code, name, credits, department, semester) are required",
-      });
+    return res.status(400).json({
+      success: false,
+      message:
+        "All fields (code, name, credits, department, semester) are required",
+    });
   }
 
   try {
@@ -1144,12 +1136,10 @@ export const addSubject = async (req: AuthenticatedRequest, res: Response) => {
     });
     return res.json({ success: true, subject });
   } catch (e: any) {
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Unable to add or update the subject at this moment.",
-      });
+    return res.status(500).json({
+      success: false,
+      message: "Unable to add or update the subject at this moment.",
+    });
   }
 };
 
@@ -1251,12 +1241,10 @@ export const getGradesTemplate = async (
 
     return generateExcel(headers, `Grades_Template_${year}_${branch}`, res);
   } catch (e: any) {
-    return res
-      .status(500)
-      .json({
-        message:
-          "An internal error occurred while generating the template. Please try again.",
-      });
+    return res.status(500).json({
+      message:
+        "An internal error occurred while generating the template. Please try again.",
+    });
   }
 };
 
