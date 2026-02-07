@@ -5,7 +5,10 @@ import axios from "axios";
 import prisma from "../utils/prisma.util";
 
 const GATEWAY_URL =
-  process.env.GATEWAY_URL || "https://uniz-gateway.vercel.app/api/v1";
+  process.env.GATEWAY_URL ||
+  (process.env.NODE_ENV === "production"
+    ? "https://uniz-gateway.vercel.app/api/v1"
+    : "http://localhost:3000/api/v1");
 
 const getHeaders = (token: string) => ({ headers: { Authorization: token } });
 
@@ -786,6 +789,7 @@ export const publishResults = async (
   // Background process
   const processPublishing = async () => {
     try {
+      console.log(`[GRADES-PUBLISH] Starting for ${semesterId}, Year: ${year}`);
       let effectiveSemesterId: any = semesterId;
       if (semesterId && year && !semesterId.includes(year)) {
         effectiveSemesterId = `${year.toUpperCase()}-${semesterId.toUpperCase()}`;
@@ -983,6 +987,9 @@ export const publishAttendance = async (
 
   const processPublishing = async () => {
     try {
+      console.log(
+        `[ATTENDANCE-PUBLISH] Starting for ${semesterId}, Year: ${year}`,
+      );
       let effectiveSemesterId: any = semesterId;
       if (semesterId && year && !semesterId.includes(year)) {
         effectiveSemesterId = `${year.toUpperCase()}-${semesterId.toUpperCase()}`;
@@ -1073,6 +1080,9 @@ export const publishAttendance = async (
             const profile = profilesMap[studentId];
 
             try {
+              console.log(
+                `[Publish-Att] Sending mail to ${email} via ${GATEWAY_URL}/mail/send`,
+              );
               const mailRes = await axios.post(
                 `${GATEWAY_URL}/mail/send`,
                 {
