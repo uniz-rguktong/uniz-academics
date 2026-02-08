@@ -968,7 +968,7 @@ export const publishResults = async (
     }
   };
 
-  processPublishing();
+  await processPublishing();
 
   return res.json({
     success: true,
@@ -1011,8 +1011,8 @@ export const publishAttendance = async (
       }
 
       const displaySemester =
-        year && semesterId && !semesterId.includes(year)
-          ? `${year.toUpperCase()} ${semesterId.toUpperCase()}`
+        cleanYear && semesterId && !semesterId.includes(cleanYear)
+          ? `${cleanYear} ${semesterId.toUpperCase()}`
           : semesterId.toUpperCase();
 
       const where: any = {
@@ -1152,7 +1152,7 @@ export const publishAttendance = async (
     }
   };
 
-  processPublishing();
+  await processPublishing();
 
   return res.json({
     success: true,
